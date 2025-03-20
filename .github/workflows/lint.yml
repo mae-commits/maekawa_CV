@@ -1,0 +1,28 @@
+name: lint
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  textlint:
+    name: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: npm
+      - run: npm install
+      - name: Run lint with auto-fix
+        run: |
+          npx textlint --fix docs/README.md
+          git config --global user.name 'github-actions'
+          git config --global user.email 'github-actions@github.com'
+          git add .
+          git diff --staged --quiet || git commit -m "Apply automatic textlint fixes"
+          git push
